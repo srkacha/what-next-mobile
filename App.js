@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, Button, TextInput, Image, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Button, TextInput, Image, ActivityIndicator, Alert, Linking } from 'react-native';
 import {Icon, Card } from 'react-native-elements';
 
 var suggestBaseURL = 'https://what-next-app.herokuapp.com/what-next/api/movies/auto-suggest/';
 var recommendBaseURL = 'https://what-next-app.herokuapp.com/what-next/api/movies/recommend/';
 var testImageURL = 'https://cdn11.bigcommerce.com/s-yshlhd/images/stencil/1280x1280/products/5013/156392/full.pulpfiction_6115__98910.1556887903.jpg';
-var imageBaseURL = 'http://img.omdbapi.com/?h=600&apikey=62b5f858&i='
+var imageBaseURL = 'http://img.omdbapi.com/?h=600&apikey=62b5f858&i=';
+var imdbBaseURL = 'https://www.imdb.com/title/';
 
 export default class App extends Component {
   constructor(props){
@@ -109,6 +110,17 @@ export default class App extends Component {
     })
   }
 
+  visitIMDBForMovie(movieId){
+    let imdbURL = imdbBaseURL + movieId;
+    Linking.canOpenURL(imdbURL).then(supported =>{
+      if(supported) {
+        Linking.openURL(imdbURL);
+      }else{
+        Alert.alert('Faulty link', 'The IMDB link could not be opened.');
+      }
+    })
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -137,10 +149,13 @@ export default class App extends Component {
         <ScrollView style={{paddingHorizontal:25, paddingTop:10, backgroundColor:'#e1e1eb'}}>
             {this.state.recommendations.map(movie => (
               <View key={movie.id} style={styles.movieBox}>
-                <Image style={{height:250, width:'100%', borderTopLeftRadius:10, borderTopRightRadius:10}} source={{uri:testImageURL}}></Image>
+                <Image style={{height:500, width:'100%', borderTopLeftRadius:10, borderTopRightRadius:10}} source={{uri:imageBaseURL + movie.id}}></Image>
                 <View style={{flexDirection:'row'}}>
                   <View style={styles.movieTitle}>
                     <Text style={{color:'white', fontSize:20}}>{movie.title}</Text>
+                  </View>
+                  <View style={styles.imdbLink}>
+                    <Button onPress = {() => {this.visitIMDBForMovie(movie.id)}} title="IMDB" color="#1f1f2b"></Button>
                   </View>
                   <View style={styles.rating}>
                     <Text style = {{color:'white', fontSize:30, fontWeight:'bold'}}>{movie.rating}</Text>
@@ -226,17 +241,24 @@ const styles = StyleSheet.create({
     backgroundColor:'#413f69',
     justifyContent:'center',
     borderBottomLeftRadius:10,
-    padding:5,
+    padding:3,
     paddingLeft:20,
-    width:'80%',
+    width:'56%',
 
+   },
+   imdbLink:{
+    backgroundColor:'#413f69',
+    width:'24%',
+    justifyContent:'center',
+    padding:10
    },
    rating:{
      backgroundColor: '#c20000',
      alignItems:'center',
-     padding:10,
+     padding:6,
      borderBottomRightRadius:10,
-     width: '20%'
+     width: '20%',
+     justifyContent:'center'
    },
    loading:{
      alignContent:'center',
