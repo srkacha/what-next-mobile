@@ -24,7 +24,8 @@ export default class App extends Component {
     recommendations: [],
     fetchingRecommendationData: false,
     inputText: '',
-    selectedId: ''
+    selectedId: '',
+    firstSearch: true
   };
 
   fetchAutoSuggestionData(){
@@ -82,6 +83,9 @@ export default class App extends Component {
         recommendations: responseJson.data
       }, () => {
         this.toggleLoadingState(false);
+        this.setState({
+          firstSearch: false
+        });
       });
     }).catch((error) => {
       //Do something with the error, show a message or something
@@ -144,6 +148,15 @@ export default class App extends Component {
               ))}
             </ScrollView>
           <Button disabled={this.state.fetchingRecommendationData} onPress = {this.onButtonPressHandler} color="#ff9d00" title="Suggest me some movies"></Button>
+        </View>
+        <View style={{justifyContent:"center"}}>
+          {
+            this.state.firstSearch?
+            <View style={styles.firstSearch}>
+              <Icon name="arrow-upward" size={200} color='#9e0000'></Icon>
+              <Text style={{fontSize:20, width:'70%', textAlign:'center', fontWeight:'bold', color:'#1f1f2b'}}>Not sure what to watch next? Just enter a movie you recently liked and let us find you something you'll enjoy!</Text>
+            </View>:null
+          }
         </View>
         {!this.state.fetchingRecommendationData?
         <ScrollView style={{paddingHorizontal:25, paddingTop:10, backgroundColor:'#e1e1eb'}}>
@@ -232,8 +245,8 @@ const styles = StyleSheet.create({
      color: '#222',
    },
    movieBox: {
-     marginBottom:15,
-     elevation: 5,
+     elevation: 15,
+     margin:15,
      backgroundColor: '#0000',
      borderRadius: 10
    },
@@ -265,5 +278,11 @@ const styles = StyleSheet.create({
      justifyContent:'center',
      alignItems:'center',
      height:300
+   },
+   firstSearch:{
+     justifyContent:'center',
+     alignContent:'center',
+     alignItems:'center',
+     height:400
    }
 });
