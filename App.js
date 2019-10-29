@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, Button, TextInput, Image, ActivityIndicator, Alert, Linking } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Button, TextInput, Image, ActivityIndicator, Alert, Linking, Picker } from 'react-native';
 import {Icon, Card } from 'react-native-elements';
 
 var suggestBaseURL = 'https://what-next-app.herokuapp.com/what-next/api/movies/auto-suggest/';
@@ -110,7 +110,8 @@ export default class App extends Component {
     this.setState({
       inputText: movie.title,
       selectedId: movie.id,
-      suggestions:[]
+      suggestions:[],
+      reason: 1
     })
   }
 
@@ -125,6 +126,15 @@ export default class App extends Component {
     })
   }
 
+  formatGenres(genres){
+    let formattedGenres = ''
+    genres.forEach(genre => {
+      formattedGenres += genre + ', '
+    });
+    formattedGenres = formattedGenres.trim().substr(0, formattedGenres.length - 2);
+    return formattedGenres
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -132,7 +142,7 @@ export default class App extends Component {
           <View style={styles.titleSection}>
             <View style={{flexDirection:'row'}}>
               <View><Text style = {styles.title}>WHAT </Text></View>
-              <View><Icon name="movie" color="#d90000" size={55}></Icon></View>
+              <View><Icon name="movie" color="red" size={55}></Icon></View>
               <View><Text style = {styles.title}> NEXT?</Text></View>
             </View>
           </View>
@@ -143,11 +153,22 @@ export default class App extends Component {
           <ScrollView style={styles.suggestions}>
               {this.state.suggestions.map(movie => (
                 <View key = {movie.id}>
-                  <Text style={styles.suggestionText} onPress = {() => {this.onSuggestionPressHandler(movie)}}>{movie.title}</Text>
+                  <Text style={styles.suggestionText} onPress = {() => {this.onSuggestionPressHandler(movie)}}>{movie.title + "(" + movie.year + ")"}</Text>
                 </View>
               ))}
-            </ScrollView>
-          <Button disabled={this.state.fetchingRecommendationData} onPress = {this.onButtonPressHandler} color="#ff9d00" title="Suggest me some movies"></Button>
+          </ScrollView>
+          <View style={{flexDirection:'row', marginBottom:5}}>
+                <View style={{width:"60%", justifyContent:'center'}}>
+                  <Text style={{color:'white', fontSize:25, fontWeight:'bold'}}>FOCUS ON THE:</Text>
+                </View>
+                <View style={{width:"40%"}}>
+                <Picker style={{backgroundColor:'#fafafa', padding:5, color:'black', marginVertical:2, height:40}} selectedValue={this.state.reason} onValueChange = {(val, index) => this.setState({reason: val})}>
+                  <Picker.Item label='Story' value={1}></Picker.Item>
+                  <Picker.Item label='Actors' value={2}></Picker.Item>
+                </Picker>
+                </View>
+          </View>
+          <Button disabled={this.state.fetchingRecommendationData} onPress = {this.onButtonPressHandler} color="#4c536e" title="Suggest me similar movies"></Button>
         </View>
         <View style={{justifyContent:"center"}}>
           {
@@ -159,16 +180,24 @@ export default class App extends Component {
           }
         </View>
         {!this.state.fetchingRecommendationData?
-        <ScrollView style={{paddingHorizontal:25, paddingTop:10, backgroundColor:'#e1e1eb'}}>
+        <ScrollView style={{paddingHorizontal:25, paddingTop:10, backgroundColor:'#fafafa'}}>
             {this.state.recommendations.map(movie => (
               <View key={movie.id} style={styles.movieBox}>
-                <Image style={{height:500, width:'100%', borderTopLeftRadius:10, borderTopRightRadius:10}} source={{uri:imageBaseURL + movie.id}}></Image>
+                <Image style={{ height:300, width:'100%', borderTopLeftRadius:10, borderTopRightRadius:10}} source={{uri:imageBaseURL + movie.id}}></Image>
+                <View style={{flexDirection:'row'}}>
+                  <View style={styles.movieGenres}>
+                    <Text style={{color:'white', fontSize:15, color:'#dba506'}}>{this.formatGenres(movie.genres)}</Text>
+                  </View>
+                  <View style={styles.movieYear}>
+                    <Text style={{color:'white', fontSize:15, color:'#dba506'}}>{movie.year}</Text>
+                  </View>
+                </View>
                 <View style={{flexDirection:'row'}}>
                   <View style={styles.movieTitle}>
-                    <Text style={{color:'white', fontSize:20}}>{movie.title}</Text>
+                    <Text style={{color:'white', fontSize:20, fontWeight:'bold'}}>{movie.title}</Text>
                   </View>
                   <View style={styles.imdbLink}>
-                    <Button onPress = {() => {this.visitIMDBForMovie(movie.id)}} title="IMDB" color="#1f1f2b"></Button>
+                    <Button onPress = {() => {this.visitIMDBForMovie(movie.id)}} title="IMDB" color="#dba506"></Button>
                   </View>
                   <View style={styles.rating}>
                     <Text style = {{color:'white', fontSize:30, fontWeight:'bold'}}>{movie.rating}</Text>
@@ -192,13 +221,13 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e1e1eb',
+    backgroundColor: '#fafafa',
   },
   header:{
     backgroundColor: '#1f1f2b',
     padding: 20,
     paddingTop:40,
-    elevation: 20
+    elevation: 30
   },
   input:{
     width: '90%',
@@ -247,20 +276,20 @@ const styles = StyleSheet.create({
    movieBox: {
      elevation: 15,
      margin:15,
-     backgroundColor: '#0000',
-     borderRadius: 10
+     backgroundColor: '#fff',
+     borderRadius:10
    },
    movieTitle:{
-    backgroundColor:'#413f69',
+    backgroundColor:'#4c536e',
     justifyContent:'center',
     borderBottomLeftRadius:10,
-    padding:3,
+    padding:10,
     paddingLeft:20,
     width:'56%',
 
    },
    imdbLink:{
-    backgroundColor:'#413f69',
+    backgroundColor:'#4c536e',
     width:'24%',
     justifyContent:'center',
     padding:10
@@ -274,15 +303,29 @@ const styles = StyleSheet.create({
      justifyContent:'center'
    },
    loading:{
+     backgroundColor:'#fafafa',
      alignContent:'center',
      justifyContent:'center',
      alignItems:'center',
      height:300
    },
    firstSearch:{
+     backgroundColor:'#fafafa',
      justifyContent:'center',
      alignContent:'center',
      alignItems:'center',
      height:400
+   },
+   movieGenres:{
+    padding:5,
+    paddingLeft:20,
+    width:'80%',
+    backgroundColor: '#2e3242'
+   },
+   movieYear:{
+    padding:5,
+    paddingLeft:20,
+    width:'20%',
+    backgroundColor: '#2e3242'
    }
 });
