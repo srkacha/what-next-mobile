@@ -1,27 +1,31 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, Button, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Button, TextInput, Image, ActivityIndicator } from 'react-native';
 import {Icon, Card } from 'react-native-elements';
 
 var suggestBaseURL = 'https://what-next-app.herokuapp.com/what-next/api/movies/auto-suggest/';
 var recommendBaseURL = 'https://what-next-app.herokuapp.com/what-next/api/movies/recommend/';
+var testImageURL = 'https://cdn11.bigcommerce.com/s-yshlhd/images/stencil/1280x1280/products/5013/156392/full.pulpfiction_6115__98910.1556887903.jpg';
 
 export default class App extends Component {
   constructor(props){
     super(props);
     this.onInputChageHandler = this.onInputChageHandler.bind(this);
-    this.fetchSuggestionData = this.fetchSuggestionData.bind(this);
+    this.fetchAutoSuggestionData = this.fetchAutoSuggestionData.bind(this);
     this.onButtonPressHandler = this.onButtonPressHandler.bind(this);
     this.onSuggestionPressHandler = this.onSuggestionPressHandler.bind(this);
+    this.toggleLoadingState = this.toggleLoadingState.bind(this);
   }
 
   //State object
   state = {
     suggestions: [],
+    recommendations: [],
+    fetchingRecommendationData: false,
     inputText: '',
     selectedId: ''
   };
 
-  fetchSuggestionData(){
+  fetchAutoSuggestionData(){
     let substring = this.state.inputText;
     let url = suggestBaseURL + substring;
     fetch(url, {
@@ -46,16 +50,50 @@ export default class App extends Component {
     })
   }
 
+  toggleLoadingState(state){
+    this.setState({
+      fetchingRecommendationData: state
+    })
+  }
+
+  fetchMovieRecommendationData(){
+    let targetId = this.state.selectedId;
+    if(targetId === '') return;
+    let url = recommendBaseURL + targetId;
+    //Disabling the button while the fetch phase is running
+    this.toggleLoadingState(true);
+
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      }
+    }).then((response) => {
+      return response.json();
+    }).then((responseJson) =>{
+      this.setState({
+        recommendations: responseJson.data
+      }, () => {
+        this.toggleLoadingState(false);
+      });
+    }).catch((error) => {
+      //Do something with the error, show a message or something
+      alert("There was a problem fetching recommendation data, please check your input and internet connection.");
+      this.toggleLoadingState(false);
+    })
+  }
+
     onInputChageHandler(text){
     this.setState({
       inputText: text
     }, () => {
-      this.fetchSuggestionData();
+      this.fetchAutoSuggestionData();
     });
   }
 
   onButtonPressHandler(movie){
-
+    this.fetchMovieRecommendationData();
   }
 
   onSuggestionPressHandler(movie){
@@ -72,9 +110,9 @@ export default class App extends Component {
         <View style={styles.header} id="header">
           <View style={styles.titleSection}>
             <View style={{flexDirection:'row'}}>
-              <View><Text style = {styles.title}>What </Text></View>
+              <View><Text style = {styles.title}>WHAT </Text></View>
               <View><Icon name="movie" color="#d90000" size={55}></Icon></View>
-              <View><Text style = {styles.title}> next?</Text></View>
+              <View><Text style = {styles.title}> NEXT?</Text></View>
             </View>
           </View>
           <View style = {styles.searchSection}>
@@ -88,20 +126,30 @@ export default class App extends Component {
                 </View>
               ))}
             </ScrollView>
-          <Button onPress = {this.onButtonPressHandler} color="#fcba03" title="Suggest me some movies"></Button>
+          <Button disabled={this.state.fetchingRecommendationData} onPress = {this.onButtonPressHandler} color="#fcba03" title="Suggest me some movies"></Button>
         </View>
-        <ScrollView>
-          <Text style={{fontSize:50, textAlign:'center'}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-          <Text style={{fontSize:50}}>sdfsdfs</Text>
-        </ScrollView>
+        {!this.state.fetchingRecommendationData?
+        <ScrollView style={{paddingHorizontal:20, paddingTop:10, backgroundColor:'#e1e1eb'}}>
+            {this.state.recommendations.map(movie => (
+              <View key={movie.id} style={styles.movieBox}>
+                <Image style={{height:250, width:'100%', borderTopLeftRadius:10, borderTopRightRadius:10}} source={{uri:testImageURL}}></Image>
+                <View style={{flexDirection:'row'}}>
+                  <View style={styles.movieTitle}>
+                    <Text style={{color:'white', fontSize:20}}>{movie.title}</Text>
+                  </View>
+                  <View style={styles.rating}>
+                    <Text style = {{color:'white', fontSize:30, fontWeight:'bold'}}>{movie.rating}</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+            <View style={{height:10}}></View>
+        </ScrollView>:
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color="#413f69"></ActivityIndicator>
+          <Text style={{fontSize:30, color:"#413f69", width:'70%', textAlign:'center'}}>Fetching recommendation data...</Text>
+        </View>
+        }
       </View>
     );
   }
@@ -111,10 +159,10 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#e1e1eb',
   },
   header:{
-    backgroundColor: '#2e2e2e',
+    backgroundColor: '#1f1f2b',
     padding: 20,
     paddingTop:40
   },
@@ -159,5 +207,32 @@ const styles = StyleSheet.create({
    suggestionText:{
      fontSize: 25,
      color: '#222',
+   },
+   movieBox: {
+     marginBottom:15,
+     elevation: 5,
+     backgroundColor: '#0000',
+     borderRadius: 10
+   },
+   movieTitle:{
+    backgroundColor:'#413f69',
+    justifyContent:'center',
+    borderBottomLeftRadius:10,
+    padding:5,
+    width:'80%',
+
+   },
+   rating:{
+     backgroundColor: '#c20000',
+     alignItems:'center',
+     padding:10,
+     borderBottomRightRadius:10,
+     width: '20%'
+   },
+   loading:{
+     alignContent:'center',
+     justifyContent:'center',
+     alignItems:'center',
+     height:300
    }
 });
