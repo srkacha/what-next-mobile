@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, Button, TextInput, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Button, TextInput, Image, ActivityIndicator, Alert } from 'react-native';
 import {Icon, Card } from 'react-native-elements';
 
 var suggestBaseURL = 'https://what-next-app.herokuapp.com/what-next/api/movies/auto-suggest/';
 var recommendBaseURL = 'https://what-next-app.herokuapp.com/what-next/api/movies/recommend/';
 var testImageURL = 'https://cdn11.bigcommerce.com/s-yshlhd/images/stencil/1280x1280/products/5013/156392/full.pulpfiction_6115__98910.1556887903.jpg';
+var imageBaseURL = 'http://img.omdbapi.com/?h=600&apikey=62b5f858&i='
 
 export default class App extends Component {
   constructor(props){
@@ -44,7 +45,8 @@ export default class App extends Component {
       //Do something to handle errors
       if(this.state.inputText.length == 0){
         this.setState({
-          suggestions:[]
+          suggestions:[],
+          selectedId:'',
         });
       }
     })
@@ -58,7 +60,10 @@ export default class App extends Component {
 
   fetchMovieRecommendationData(){
     let targetId = this.state.selectedId;
-    if(targetId === '') return;
+    if(targetId === '' || this.state.inputText == ''){
+      Alert.alert('Invalid movie', 'Please enter a valid movie name')
+      return;
+    }
     let url = recommendBaseURL + targetId;
     //Disabling the button while the fetch phase is running
     this.toggleLoadingState(true);
@@ -126,10 +131,10 @@ export default class App extends Component {
                 </View>
               ))}
             </ScrollView>
-          <Button disabled={this.state.fetchingRecommendationData} onPress = {this.onButtonPressHandler} color="#fcba03" title="Suggest me some movies"></Button>
+          <Button disabled={this.state.fetchingRecommendationData} onPress = {this.onButtonPressHandler} color="#ff9d00" title="Suggest me some movies"></Button>
         </View>
         {!this.state.fetchingRecommendationData?
-        <ScrollView style={{paddingHorizontal:20, paddingTop:10, backgroundColor:'#e1e1eb'}}>
+        <ScrollView style={{paddingHorizontal:25, paddingTop:10, backgroundColor:'#e1e1eb'}}>
             {this.state.recommendations.map(movie => (
               <View key={movie.id} style={styles.movieBox}>
                 <Image style={{height:250, width:'100%', borderTopLeftRadius:10, borderTopRightRadius:10}} source={{uri:testImageURL}}></Image>
@@ -147,7 +152,7 @@ export default class App extends Component {
         </ScrollView>:
         <View style={styles.loading}>
           <ActivityIndicator size="large" color="#413f69"></ActivityIndicator>
-          <Text style={{fontSize:30, color:"#413f69", width:'70%', textAlign:'center'}}>Fetching recommendation data...</Text>
+          <Text style={{fontSize:30, color:"#413f69", width:'70%', textAlign:'center', fontWeight:'bold'}}>Fetching recommendation data...</Text>
         </View>
         }
       </View>
@@ -164,13 +169,15 @@ const styles = StyleSheet.create({
   header:{
     backgroundColor: '#1f1f2b',
     padding: 20,
-    paddingTop:40
+    paddingTop:40,
+    elevation: 20
   },
   input:{
     width: '90%',
     backgroundColor: 'white',
-    fontSize: 30,
+    fontSize: 25,
     padding: 5,
+    paddingLeft:10,
     borderRadius: 5,
     marginBottom:5,
     borderWidth:0
@@ -181,12 +188,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title:{
-    color:'white',
     color: 'red',
     fontSize: 40,
     textAlign: 'center',
     //fontFamily:'serif',
-    fontWeight:'bold'
+    fontWeight:'bold',
+    textShadowColor: '#9e0000',
+    textShadowOffset: {width: 0, height: -3},
+    textShadowRadius: 10
   },
    searchSection:{
      flexDirection: 'row',
@@ -194,7 +203,6 @@ const styles = StyleSheet.create({
      backgroundColor:'white',
      borderTopLeftRadius: 5,
      borderTopRightRadius: 5,
-     marginBottom: 0
    },
    suggestions:{
      backgroundColor:'white',
@@ -219,6 +227,7 @@ const styles = StyleSheet.create({
     justifyContent:'center',
     borderBottomLeftRadius:10,
     padding:5,
+    paddingLeft:20,
     width:'80%',
 
    },
