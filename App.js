@@ -71,9 +71,11 @@ export default class App extends Component {
       <View style={styles.container}>
         <View style={styles.header} id="header">
           <View style={styles.titleSection}>
+            <View style={{flexDirection:'row'}}>
               <View><Text style = {styles.title}>What </Text></View>
-              <View><Icon style={{padding: 10}} name="movie" color="#d90000" size={45}></Icon></View>
+              <View><Icon name="movie" color="#d90000" size={55}></Icon></View>
               <View><Text style = {styles.title}> next?</Text></View>
+            </View>
           </View>
           <View style = {styles.searchSection}>
             <TextInput value = {this.state.inputText} onChangeText = {this.onInputChageHandler} placeholder="Enter a movie" style = {styles.input}></TextInput>
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
     borderWidth:0
   },
   titleSection:{
-    flexDirection:'row',
+    flexDirection:'column',
     textAlign:'center',
     alignItems: 'center',
   },
