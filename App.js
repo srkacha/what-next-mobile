@@ -38,28 +38,24 @@ export default class App extends Component {
       });
     }).catch((error) => {
       //Do something to handle errors
+      if(this.state.inputText.length == 0){
+        this.setState({
+          suggestions:[]
+        });
+      }
     })
   }
 
-  onInputChageHandler(text){
+    onInputChageHandler(text){
     this.setState({
       inputText: text
     }, () => {
       this.fetchSuggestionData();
-      if(this.state.inputText.length == 0){
-        this.setState({
-          suggestions: []
-        })
-      }
     });
   }
 
   onButtonPressHandler(movie){
-    this.setState({
-      inputText: movie.title,
-      selectedId: movie.id,
-      suggestions:[]
-    })
+
   }
 
   onSuggestionPressHandler(movie){
@@ -86,7 +82,7 @@ export default class App extends Component {
           <ScrollView style={styles.suggestions}>
               {this.state.suggestions.map(movie => (
                 <View key = {movie.id}>
-                  <Text onPress = {() => {this.onSuggestionPressHandler(movie)}}>{movie.title}</Text>
+                  <Text style={styles.suggestionText} onPress = {() => {this.onSuggestionPressHandler(movie)}}>{movie.title}</Text>
                 </View>
               ))}
             </ScrollView>
@@ -157,5 +153,9 @@ const styles = StyleSheet.create({
      paddingBottom: 5,
      borderBottomLeftRadius: 5,
      borderBottomRightRadius: 5
+   },
+   suggestionText:{
+     fontSize: 25,
+     color: '#222',
    }
 });
